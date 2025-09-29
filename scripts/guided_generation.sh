@@ -7,7 +7,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
 #SBATCH --array=0-1 
-#SBATCH -o logs/slurm_esmfoldx_%j.log
+#SBATCH -o logs/slurm_esmfoldx_%j.out
 
 # PDB_FILES=("1rnt.pdb" "1hii.pdb" "1fbm.pdb" "1db1.pdb" "6q30.pdb")
 # CHAIN_IDS=("A" "A" "A" "A" "A")
@@ -41,7 +41,17 @@ echo "========================================================"
 
 source scripts/setup.sh
 
-srun python -m esm_foldx_guidedgeneration.main --pdb_filename "$CURRENT_PDB" --chain_id "$CURRENT_CHAIN" --masking_percentage "$CURRENT_MASK" --num_decoding_steps "$CURRENT_STEPS" --num_samples_per_step "$CURRENT_SAMPLES" --num_workers "$CURRENT_WORKERS"
+# Stagger start: each job sleeps N seconds based on its index
+sleep $((SLURM_ARRAY_TASK_ID * 10))
+
+srun python -m esm_foldx_guidedgeneration.main \
+    --pdb_filename "$CURRENT_PDB" \
+    --chain_id "$CURRENT_CHAIN" \
+    --masking_percentage "$CURRENT_MASK" \
+    --num_decoding_steps "$CURRENT_STEPS" \
+    --num_samples_per_step "$CURRENT_SAMPLES" \
+    --num_workers "$CURRENT_WORKERS" \
+    --log_dir "./logs"
 
 echo "========================================================"
 echo "FINISHED JOB: ${SLURM_JOB_ID}, ARRAY_TASK: ${SLURM_ARRAY_TASK_ID}"
