@@ -6,3 +6,4 @@ foldx/rotabase.txt
 
 __pycache__
 *.egg-info
+*.ipynb_checkpoints
